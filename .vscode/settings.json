@@ -13,7 +13,7 @@
             "driver": "PostgreSQL",
             "name": "Render PosrgreSQL",
             "database": "ent_ai",
-            "username": "ent_user"
+            "username": "new_ent_user"
         }
     ]
 }
