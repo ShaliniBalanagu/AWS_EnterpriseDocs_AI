@@ -16,7 +16,7 @@ def index():
         raise RuntimeError("Pinecone API key is not set. Please set the PINECONE_API_KEY environment variable.")
     if not s.pinecone_index_name:
         raise RuntimeError("Pinecone index name is not set. Please set the PINECONE_INDEX_NAME environment variable.")
-    pc=Pinecone.init(api_key=s.pinecone_api_key)
+    pc=Pinecone(api_key=s.pinecone_api_key)
     name=s.pinecone_index_name
     # Works only for required index
     try:

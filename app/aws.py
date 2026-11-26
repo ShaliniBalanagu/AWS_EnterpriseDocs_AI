@@ -22,8 +22,8 @@ def embed(text):
         'dimensions':settings().embed_dim,
         'normalize':True
     })
-    result=client('bedrock_runtime').invoke_model(modelId=settings().bedrock_embed_model,body=body)
-    return json.load(result['body'].read())['embedding']
+    result=client('bedrock-runtime').invoke_model(modelId=settings().bedrock_embed_model,body=body)
+    return json.loads(result['body'].read())['embedding']
 
 @trace("answer")
 def answer(question,evidence,history=None):

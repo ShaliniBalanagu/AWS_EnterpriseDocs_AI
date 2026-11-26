@@ -60,9 +60,9 @@ def process_s3_key(key):
         with connection() as conn:
             conn.execute("UPDATE documents SET status='ready' WHERE id=%s",(doc['id'],))
             audit(conn,doc['owner_sub'],doc['tenant_id'],'ingest_ready',{'document_id':str(doc['id']),'chunks':len(parts)})
-        log.info('Ingested document %s chunks=%d',doc['id'],len(parts))
+        logging.info('Ingested document %s chunks=%d',doc['id'],len(parts))
     except Exception:
-        log.exception('Ingestion failed for key %s',key)
+        logging.exception('Ingestion failed for key %s',key)
         with connection() as conn:
             conn.execute("UPDATE documents SET status='failed' WHERE id=%s",(doc['id'],))
         raise
