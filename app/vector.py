@@ -54,6 +54,18 @@ def namespace(tenant):
 def upsert(tenant, records):
     return index().upsert(vectors=records, namespace=namespace(tenant))
 
+"""
+function: search(tenant, vector, groups, owner, limit=5)
+index()	Gets the Pinecone index connection
+vector=vector	Searches using the question embedding
+top_k=limit	Returns up to 5 matching records
+include_metadata=True	Returns metadata along with matches
+namespace=namespace(tenant)	Restricts search to the tenant's namespace
+filter=acl	Applies group and owner access restrictions
+Notice that there are two levels of access isolation:
+1. Tenant-level isolation through namespace.
+2. Document-level access through metadata filters.
+"""
 @trace("search")
 def search(tenant, vector, groups, owner, limit=5):
     acl = {'$or': [{'allowed_groups': {'$in': list(groups)}},

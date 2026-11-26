@@ -29,3 +29,45 @@ def retrieve(s):
     sources=[{'index':i+1,'document_id':h['metadata'].get('document_id',''),'title':h['metadata'].get('title',''), 'page':h['metadata'].get('page',1),'excerpt':h['metadata'].get('text','')[:320]} for i,h in enumerate(hits)]
     return {'passages':hits,'sources':sources}
 
+#Checks if it has to generate or has any evidence ie if any info is present in db
+def route(s): return 'generate' if s['passages'] else 'no_evidence'
+
+@trace("no_evidence")
+def no_evidence(s):return {'answer':'I could not find any supporting evidence in documents you are authorized to access.','status':'no_evidence'}
+
+@trace("generate")
+def generate(s):
+    evidence='\n\n'.join(f'[{i+1}] {h["metadata"].get("title", "Document")}, page {h["metadata"].get("page",1)}: {h["metadata"].get("text", "")}' for i,h in enumerate(s['passages']))
+    return {'answer':answer(s['question'],
+            evidence,
+            s.get('history',[])),
+            'status':'answered'}
+
+@trace("validate")
+def validate(s): return {'answer':check_output(s['answer'])}
+
+def make_graph():
+    g=StateGraph(State)
+    g.add_node('guard',guard)
+    g.add_node('retrieve',retrieve)
+    g.add_node('no_evidence',no_evidence)
+    g.add_node('generate',generate)
+    g.add_node('validate',validate)
+    g.add_edge(START,'guard')
+    g.add_edge('guard','retrieve')
+    g.add_conditional_edges('retrieve',route,{'generate':'generate','no_evidence':'no_evidence'})
+    g.add_edge('generate','validate')
+    g.add_edge('validate',END)
+    g.add_edge('no_evidence',END)
+    return g.compile()
+
+graph=make_graph()
+
+@trace("chat")
+def chat(p,question,history=None):
+    r=graph.invoke({'principal':p,
+                    'question':question,
+                    'history':history or []})
+    return {'answer':r['answer'],
+            'sources':r.get('sources',[]),
+            'status':r.get('status','answered')}
